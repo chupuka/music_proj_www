@@ -1,0 +1,111 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://127.0.0.1:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: userServiceCircuitBreaker
+                fallbackUri: forward:/fallback/user-service
+                
+        - id: playlist-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/playlists/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: playlistServiceCircuitBreaker
+                fallbackUri: forward:/fallback/playlist-service
+                
+        - id: artist-service
+          uri: lb://music-catalog-service
+          predicates:
+            - Path=/api/artists/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: artistServiceCircuitBreaker
+                fallbackUri: forward:/fallback/artist-service
+                
+        - id: album-service
+          uri: lb://music-catalog-service
+          predicates:
+            - Path=/api/albums/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: albumServiceCircuitBreaker
+                fallbackUri: forward:/fallback/album-service
+                
+        - id: track-service
+          uri: lb://music-catalog-service
+          predicates:
+            - Path=/api/tracks/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: trackServiceCircuitBreaker
+                fallbackUri: forward:/fallback/track-service
+                
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: notificationServiceCircuitBreaker
+                fallbackUri: forward:/fallback/notification-service
+                
+        - id: favorite-tracks-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/favorite-tracks/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: favoriteTracksCircuitBreaker
+                fallbackUri: forward:/fallback/favorite-tracks
+                
+        - id: playlist-tracks-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/playlist-tracks/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: playlistTracksCircuitBreaker
+                fallbackUri: forward:/fallback/playlist-service
+                
+        - id: files-service
+          uri: lb://music-catalog-service
+          predicates:
+            - Path=/api/files/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: filesServiceCircuitBreaker
+                fallbackUri: forward:/fallback/files-service
+

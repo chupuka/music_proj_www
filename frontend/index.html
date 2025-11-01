@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ishak.da - Музыкальный стриминг</title>
+    <link rel="icon" href="logo.jpg" type="image/jpeg">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/player.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <a href="index.html" class="logo-link">
+                    <img src="logo.jpg" alt="ishak.da" class="logo-img">
+                </a>
+                <a href="index.html" class="site-name">ishak.da</a>
+            </div>
+            <div class="header-actions">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Поиск треков и исполнителей..." class="search-input">
+                    <button class="search-btn" onclick="performSearch()" title="Поиск">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <a href="admin.html" class="btn-admin" title="Админ-панель">
+                    <i class="fas fa-lock"></i>
+                </a>
+                <button class="btn-theme-toggle" id="themeToggle" title="Переключить тему">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                <button class="btn-login" id="loginBtn">
+                    <i class="fas fa-user"></i> Войти
+                </button>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="btn-profile" id="profileBtn">
+                        <i class="fas fa-user-circle"></i> <span id="userName"></span>
+                    </button>
+                    <button class="btn-logout" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item" data-page="playlists">
+                    <i class="fas fa-list"></i>
+                    <span>Плейлисты</span>
+                </a>
+                <a href="#" class="nav-item" data-page="albums">
+                    <i class="fas fa-compact-disc"></i>
+                    <span>Альбомы</span>
+                </a>
+                <a href="#" class="nav-item" data-page="artists">
+                    <i class="fas fa-user-friends"></i>
+                    <span>Исполнители</span>
+                </a>
+                <a href="#" class="nav-item" data-page="genres">
+                    <i class="fas fa-tags"></i>
+                    <span>Жанры</span>
+                </a>
+                <a href="#" class="nav-item active" data-page="new-tracks">
+                    <i class="fas fa-star"></i>
+                    <span>Новинки</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Filters -->
+            <div class="filters">
+                <button class="filter-btn active" data-period="day">За день</button>
+                <button class="filter-btn" data-period="week">За неделю</button>
+                <button class="filter-btn" data-period="month">За месяц</button>
+                <button class="filter-btn" data-period="all">За все время</button>
+            </div>
+
+            <!-- Tracks List -->
+            <div class="tracks-container">
+                <h2 class="section-title" id="sectionTitle">Топ треков</h2>
+                <div class="tracks-list" id="tracksList">
+                    <!-- Треки будут загружены через JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="login">Вход</button>
+                <button class="tab-btn" data-tab="register">Регистрация</button>
+            </div>
+
+            <!-- Login Form -->
+            <form class="auth-form active" id="loginForm">
+                <h3>Вход в аккаунт</h3>
+                <div class="form-group">
+                    <label for="loginEmail">Email или Username</label>
+                    <input type="text" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Пароль</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn-primary">Войти</button>
+                <div class="error-message" id="loginError"></div>
+            </form>
+
+            <!-- Register Form -->
+            <form class="auth-form" id="registerForm">
+                <h3>Регистрация</h3>
+                <div class="form-group">
+                    <label for="regUsername">Username</label>
+                    <input type="text" id="regUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Пароль</label>
+                    <input type="password" id="regPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="regFirstName">Имя (необязательно)</label>
+                    <input type="text" id="regFirstName">
+                </div>
+                <div class="form-group">
+                    <label for="regLastName">Фамилия (необязательно)</label>
+                    <input type="text" id="regLastName">
+                </div>
+                <button type="submit" class="btn-primary">Зарегистрироваться</button>
+                <div class="error-message" id="registerError"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <span class="close" id="closeProfileModal">&times;</span>
+            <div class="profile-header">
+                <h2>Профиль пользователя</h2>
+                <div class="profile-info" id="profileInfo">
+                    <!-- Информация о пользователе -->
+                </div>
+            </div>
+            <div class="profile-content">
+                <h3>Любимые треки</h3>
+                <div class="favorite-tracks" id="favoriteTracks">
+                    <!-- Любимые треки будут загружены -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Player -->
+    <div class="audio-player-container" id="audioPlayerContainer">
+        <div class="audio-player">
+            <div class="player-artwork" id="playerArtwork">
+                <i class="fas fa-music"></i>
+            </div>
+            <div class="player-info">
+                <div class="player-track-title" id="playerTrackTitle">Выберите трек для воспроизведения</div>
+                <div class="player-track-artist" id="playerTrackArtist">—</div>
+            </div>
+            <div class="player-controls">
+                <button class="player-btn" id="prevBtn" onclick="previousTrack()" title="Предыдущий">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button class="player-btn play-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Воспроизвести/Пауза">
+                    <i class="fas fa-play" id="playPauseIcon"></i>
+                </button>
+                <button class="player-btn" id="nextBtn" onclick="nextTrack()" title="Следующий">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+            </div>
+            <div class="player-progress-container">
+                <span class="player-time" id="currentTime">0:00</span>
+                <div class="player-progress-bar" id="progressBar" onclick="seek(event)">
+                    <div class="player-progress-fill" id="progressFill"></div>
+                    <div class="player-progress-handle"></div>
+                </div>
+                <span class="player-time" id="totalTime">0:00</span>
+            </div>
+            <div class="player-volume-container">
+                <button class="player-volume-btn" id="volumeBtn" onclick="toggleMute()" title="Громкость">
+                    <i class="fas fa-volume-up" id="volumeIcon"></i>
+                </button>
+                <div class="player-volume-slider" id="volumeSlider" onclick="setVolume(event)">
+                    <div class="player-volume-fill" id="volumeFill"></div>
+                </div>
+            </div>
+            <div class="player-actions">
+                <button class="player-action-btn" id="repeatBtn" onclick="toggleRepeat()" title="Повтор">
+                    <i class="fas fa-redo"></i>
+                </button>
+                <button class="player-action-btn" id="shuffleBtn" onclick="toggleShuffle()" title="Перемешать">
+                    <i class="fas fa-random"></i>
+                </button>
+            </div>
+        </div>
+        <audio id="audioElement" preload="metadata"></audio>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/player.js"></script>
+</body>
+</html>
+

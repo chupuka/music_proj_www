@@ -1,0 +1,2 @@
+2025-11-01T23:49:54.363+03:00  INFO 29996 --- [notification-service] [AsyncResolver-bootstrap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2025-11-01T23:54:54.414+03:00  INFO 29996 --- [notification-service] [AsyncResolver-bootstrap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration

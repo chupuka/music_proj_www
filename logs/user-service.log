@@ -1,0 +1,2 @@
+2025-11-01T23:49:06.936+03:00  INFO 8960 --- [user-service] [AsyncResolver-bootstrap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2025-11-01T23:54:06.945+03:00  INFO 8960 --- [user-service] [AsyncResolver-bootstrap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
