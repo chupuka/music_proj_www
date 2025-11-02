@@ -36,6 +36,10 @@
         <module>user-service</module>
         <module>music-catalog-service</module>
         <module>notification-service</module>
+        <module>analytics-service</module>
+        <module>recommendation-service</module>
+        <module>search-service</module>
+        <module>social-service</module>
     </modules>
 
     <dependencyManagement>
@@ -65,4 +69,3 @@
     </dependencies>
 
 </project>
-

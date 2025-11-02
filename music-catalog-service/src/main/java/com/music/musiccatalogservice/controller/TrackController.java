@@ -86,5 +86,77 @@ public class TrackController {
         List<TrackDTO> tracks = trackService.searchTracks(query);
         return ResponseEntity.ok(tracks);
     }
+    
+    @GetMapping("/new-releases")
+    @Operation(summary = "Get new release tracks")
+    public ResponseEntity<List<TrackDTO>> getNewReleaseTracks() {
+        List<TrackDTO> tracks = trackService.getNewReleaseTracks();
+        return ResponseEntity.ok(tracks);
+    }
+    
+    @PostMapping("/{id}/play-counts")
+    @Operation(summary = "Set play counts for a track")
+    public ResponseEntity<Void> setPlayCounts(@PathVariable Long id, @RequestBody PlayCountsRequest request) {
+        try {
+            if (request == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            trackPlayService.setPlayCounts(
+                id, 
+                request.getPlayCountAll(), 
+                request.getPlayCountMonth(), 
+                request.getPlayCountWeek(), 
+                request.getPlayCountDay()
+            );
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            // Логируем ошибку для отладки
+            System.err.println("Error setting play counts for track " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    // Inner class for play counts request
+    public static class PlayCountsRequest {
+        private Long playCountAll;
+        private Long playCountMonth;
+        private Long playCountWeek;
+        private Long playCountDay;
+        
+        public Long getPlayCountAll() {
+            return playCountAll;
+        }
+        
+        public void setPlayCountAll(Long playCountAll) {
+            this.playCountAll = playCountAll;
+        }
+        
+        public Long getPlayCountMonth() {
+            return playCountMonth;
+        }
+        
+        public void setPlayCountMonth(Long playCountMonth) {
+            this.playCountMonth = playCountMonth;
+        }
+        
+        public Long getPlayCountWeek() {
+            return playCountWeek;
+        }
+        
+        public void setPlayCountWeek(Long playCountWeek) {
+            this.playCountWeek = playCountWeek;
+        }
+        
+        public Long getPlayCountDay() {
+            return playCountDay;
+        }
+        
+        public void setPlayCountDay(Long playCountDay) {
+            this.playCountDay = playCountDay;
+        }
+    }
 }
-

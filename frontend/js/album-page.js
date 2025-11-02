@@ -69,6 +69,67 @@ async function loadTracks() {
     }
 }
 
+// Declare toggleAlbumFavorite early so it's available when HTML is rendered
+window.toggleAlbumFavorite = async function(albumId) {
+    const user = window.api && window.api.getCurrentUser ? window.api.getCurrentUser() : null;
+    if (!user) {
+        if (window.openModal) {
+            window.openModal('loginModal');
+        } else {
+            alert('Войдите, чтобы добавить треки в избранное');
+        }
+        return;
+    }
+    
+    const btn = document.getElementById('albumFavoriteBtn');
+    const icon = document.getElementById('albumFavoriteIcon');
+    
+    if (!btn || !icon) {
+        console.error('Album favorite button not found');
+        return;
+    }
+    
+    try {
+        // Get all tracks from the album
+        const allTracks = await window.api.getTracks();
+        const albumTracks = allTracks.filter(t => t.albumId === parseInt(albumId));
+        
+        if (albumTracks.length === 0) {
+            alert('В этом альбоме нет треков');
+            return;
+        }
+        
+        // Add each track to favorites
+        let addedCount = 0;
+        for (const track of albumTracks) {
+            try {
+                const isFav = await window.api.isFavorite(user.id, track.id);
+                if (!isFav) {
+                    await window.api.addFavoriteTrack(user.id, track.id);
+                    addedCount++;
+                }
+            } catch (error) {
+                console.warn(`Error adding track ${track.id} to favorites:`, error);
+            }
+        }
+        
+        if (addedCount > 0) {
+            alert(`Добавлено ${addedCount} треков в Мои треки`);
+            btn.classList.add('active');
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+        } else {
+            alert('Все треки этого альбома уже добавлены в Мои треки');
+            btn.classList.add('active');
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+        }
+    } catch (error) {
+        console.error('Error adding album tracks to favorites:', error);
+        alert('Ошибка при добавлении треков: ' + (error.message || 'Неизвестная ошибка'));
+    }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Ждем загрузки app.js, если он еще не загружен
     if (typeof window.initializeAuth !== 'function' || typeof window.initializeTheme !== 'function') {
@@ -137,6 +198,9 @@ async function initializePage() {
 async function loadAlbumDetails(albumId) {
     const container = document.getElementById('albumDetails');
     
+    // Сохраняем ID альбома для использования в playAlbum
+    currentAlbumId = albumId;
+    
     try {
         // Загружаем необходимые данные
         await Promise.all([
@@ -199,10 +263,42 @@ async function loadAlbumDetails(albumId) {
                         <div class="track-meta-item">
                             <strong>Треков:</strong> ${albumTracks.length}
                         </div>
+                        <div class="track-meta-item" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                            <strong style="display: block; margin-bottom: 8px;">Статистика прослушиваний альбома:</strong>
+                            <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px;">
+                                ${(() => {
+                                    const totalAll = albumTracks.reduce((sum, t) => sum + (t.playCountAll || 0), 0);
+                                    const totalMonth = albumTracks.reduce((sum, t) => sum + (t.playCountMonth || 0), 0);
+                                    const totalWeek = albumTracks.reduce((sum, t) => sum + (t.playCountWeek || 0), 0);
+                                    const totalDay = albumTracks.reduce((sum, t) => sum + (t.playCountDay || 0), 0);
+                                    return `
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-headphones" style="color: #1142AA;"></i>
+                                            <span><strong>Всего:</strong> ${totalAll}</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-calendar-month" style="color: #1142AA;"></i>
+                                            <span><strong>За месяц:</strong> ${totalMonth}</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-calendar-week" style="color: #1142AA;"></i>
+                                            <span><strong>За неделю:</strong> ${totalWeek}</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-calendar-day" style="color: #1142AA;"></i>
+                                            <span><strong>За день:</strong> ${totalDay}</span>
+                                        </div>
+                                    `;
+                                })()}
+                            </div>
+                        </div>
                     </div>
                     <div class="album-details-actions">
                         <button class="btn-listen" onclick="window.playAlbum()">
                             <i class="fas fa-play"></i> Слушать альбом
+                        </button>
+                        <button class="btn-favorite-action" id="albumFavoriteBtn" onclick="toggleAlbumFavorite(${album.id})" title="Добавить треки альбома в Мои треки">
+                            <i class="far fa-heart" id="albumFavoriteIcon"></i>
                         </button>
                     </div>
                 </div>
@@ -231,6 +327,9 @@ async function loadAlbumDetails(albumId) {
                                     <div class="track-info">
                                         <div class="track-title"><a href="track.html?id=${track.id}" class="track-link">${escapeHtml(track.title)}</a></div>
                                         <div class="track-artist"><a href="artist.html?id=${track.artistId}" class="artist-link">${escapeHtml(artist ? artist.name : 'Неизвестный исполнитель')}</a></div>
+                                        <div class="track-stats" style="font-size: 11px; color: #666; margin-top: 4px;">
+                                            <i class="fas fa-headphones"></i> ${track.playCountAll || 0} прослушиваний
+                                        </div>
                                     </div>
                                     <div class="track-duration">${duration}</div>
                                     <div class="track-actions">
@@ -253,6 +352,9 @@ async function loadAlbumDetails(albumId) {
         `;
         
         container.innerHTML = albumHtml;
+        
+        // Check album favorite status
+        await checkAlbumFavoriteStatus(parseInt(albumId));
         
         // Load favorite status
         if (window.api && window.api.isAuthenticated()) {
@@ -306,96 +408,239 @@ async function loadFavoriteStatus() {
 
 // Store album tracks for playlist
 let currentAlbumTracks = [];
+let currentAlbumId = null;
 
-function playAlbum() {
-    // Get all album tracks from the DOM
-    const albumTrackElements = document.querySelectorAll('.track-item[data-track-id]');
-    if (albumTrackElements.length === 0) return;
-    
-    // Get track IDs in order
-    const albumTrackIds = Array.from(albumTrackElements).map(el => 
-        parseInt(el.getAttribute('data-track-id'))
-    );
-    
-    // Get full track objects from window.tracks
-    if (!window.tracks || window.tracks.length === 0) {
-        console.error('Tracks not loaded');
-        return;
-    }
-    
-    // Create playlist from album tracks
-    const tracks = albumTrackIds.map(id => 
-        window.tracks.find(t => t.id === id)
-    ).filter(t => t != null);
-    
-    if (tracks.length === 0) {
-        console.error('No tracks found for album');
-        return;
-    }
-    
-    // Set playlist and start playing from first track
-    if (window.setPlaylist) {
-        window.setPlaylist(tracks, 0);
-    } else if (window.playTrack) {
-        // Fallback: set playlist directly and play first track
-        window.playlist = tracks;
-        window.currentTrackIndex = 0;
-        window.playTrack(tracks[0].id);
+async function playAlbum() {
+    try {
+        // Если альбом еще не загружен, пытаемся получить ID из URL
+        if (!currentAlbumId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentAlbumId = urlParams.get('id');
+        }
+        
+        // Если ID альбома есть, получаем треки альбома
+        let tracks = [];
+        if (currentAlbumId) {
+            if (!window.tracks || window.tracks.length === 0) {
+                window.tracks = await window.api.getTracks();
+            }
+            tracks = window.tracks.filter(t => t.albumId === parseInt(currentAlbumId));
+        } else {
+            // Fallback: получаем треки из DOM
+            const albumTrackElements = document.querySelectorAll('.track-item[data-track-id]');
+            if (albumTrackElements.length === 0) {
+                alert('Треков в альбоме нет');
+                return;
+            }
+            
+            const albumTrackIds = Array.from(albumTrackElements).map(el => 
+                parseInt(el.getAttribute('data-track-id'))
+            );
+            
+            if (!window.tracks || window.tracks.length === 0) {
+                window.tracks = await window.api.getTracks();
+            }
+            
+            tracks = albumTrackIds.map(id => 
+                window.tracks.find(t => t.id === id)
+            ).filter(t => t != null);
+        }
+        
+        if (tracks.length === 0) {
+            alert('В этом альбоме нет треков');
+            return;
+        }
+        
+        // Устанавливаем плейлист и начинаем воспроизведение первого трека
+        console.log('[ALBUM] Setting playlist with', tracks.length, 'tracks');
+        if (window.setPlaylist && typeof window.setPlaylist === 'function') {
+            window.setPlaylist(tracks, 0);
+            console.log('[ALBUM] Playlist set, calling playTrack for track:', tracks[0]?.id);
+            // Явно запускаем первый трек после установки плейлиста
+            if (window.playTrack && typeof window.playTrack === 'function' && tracks[0] && tracks[0].id) {
+                try {
+                    await window.playTrack(tracks[0].id);
+                    console.log('[ALBUM] playTrack called successfully');
+                } catch (error) {
+                    console.error('[ALBUM] Error calling playTrack:', error);
+                    alert('Ошибка воспроизведения: ' + error.message);
+                }
+            } else {
+                console.error('[ALBUM] window.playTrack not available or invalid');
+            }
+        } else if (window.playTrack && typeof window.playTrack === 'function') {
+            console.log('[ALBUM] setPlaylist not available, using fallback');
+            window.playlist = tracks;
+            window.currentTrackIndex = 0;
+            try {
+                await window.playTrack(tracks[0].id);
+            } catch (error) {
+                console.error('[ALBUM] Error in fallback playTrack:', error);
+                alert('Ошибка воспроизведения: ' + error.message);
+            }
+        } else {
+            console.error('[ALBUM] Neither setPlaylist nor playTrack available');
+            alert('Плеер не доступен. Пожалуйста, обновите страницу.');
+        }
+    } catch (error) {
+        console.error('Error playing album:', error);
+        alert('Ошибка воспроизведения альбома: ' + error.message);
     }
 }
 
 // Function to play track from album (sets playlist starting from this track)
-function playTrackFromAlbum(trackId) {
-    // Get all album tracks from the DOM
-    const albumTrackElements = document.querySelectorAll('.track-item[data-track-id]');
-    if (albumTrackElements.length === 0) {
-        // Fallback to regular playTrack
-        if (window.playTrack) {
-            window.playTrack(trackId);
+async function playTrackFromAlbum(trackId) {
+    try {
+        // Если альбом еще не загружен, пытаемся получить ID из URL
+        if (!currentAlbumId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentAlbumId = urlParams.get('id');
         }
-        return;
-    }
-    
-    // Get track IDs in order
-    const albumTrackIds = Array.from(albumTrackElements).map(el => 
-        parseInt(el.getAttribute('data-track-id'))
-    );
-    
-    // Find index of selected track
-    const trackIndex = albumTrackIds.indexOf(parseInt(trackId));
-    if (trackIndex === -1) {
-        console.error('Track not found in album');
-        // Fallback to regular playTrack
-        if (window.playTrack) {
-            window.playTrack(trackId);
+        
+        // Получаем треки альбома
+        let tracks = [];
+        let trackIndex = -1;
+        
+        if (currentAlbumId) {
+            // Если ID альбома есть, получаем треки из window.tracks
+            if (!window.tracks || window.tracks.length === 0) {
+                window.tracks = await window.api.getTracks();
+            }
+            tracks = window.tracks.filter(t => t.albumId === parseInt(currentAlbumId));
+            trackIndex = tracks.findIndex(t => t.id === parseInt(trackId));
+        } else {
+            // Fallback: получаем треки из DOM
+            const albumTrackElements = document.querySelectorAll('.track-item[data-track-id]');
+            if (albumTrackElements.length === 0) {
+                // Если треки в DOM не найдены, просто воспроизводим трек
+                if (window.playTrack) {
+                    await window.playTrack(trackId);
+                }
+                return;
+            }
+            
+            const albumTrackIds = Array.from(albumTrackElements).map(el => 
+                parseInt(el.getAttribute('data-track-id'))
+            );
+            
+            trackIndex = albumTrackIds.indexOf(parseInt(trackId));
+            if (trackIndex === -1) {
+                // Если трек не найден в альбоме, просто воспроизводим его
+                if (window.playTrack) {
+                    await window.playTrack(trackId);
+                }
+                return;
+            }
+            
+            if (!window.tracks || window.tracks.length === 0) {
+                window.tracks = await window.api.getTracks();
+            }
+            
+            tracks = albumTrackIds.map(id => 
+                window.tracks.find(t => t.id === id)
+            ).filter(t => t != null);
         }
-        return;
+        
+        if (tracks.length === 0) {
+            console.error('No tracks found for album');
+            // Fallback: пытаемся воспроизвести трек напрямую
+            if (window.playTrack) {
+                await window.playTrack(trackId);
+            }
+            return;
+        }
+        
+        if (trackIndex === -1) {
+            // Если индекс трека не найден, просто воспроизводим его
+            if (window.playTrack) {
+                await window.playTrack(trackId);
+            }
+            return;
+        }
+        
+        // Устанавливаем плейлист и начинаем воспроизведение
+        console.log('[ALBUM] Setting playlist with', tracks.length, 'tracks, starting at index:', trackIndex);
+        if (window.setPlaylist && typeof window.setPlaylist === 'function') {
+            window.setPlaylist(tracks, trackIndex);
+            console.log('[ALBUM] Playlist set, calling playTrack for track:', tracks[trackIndex]?.id);
+            // Явно запускаем трек после установки плейлиста
+            if (window.playTrack && typeof window.playTrack === 'function' && tracks[trackIndex] && tracks[trackIndex].id) {
+                try {
+                    await window.playTrack(tracks[trackIndex].id);
+                    console.log('[ALBUM] playTrack called successfully');
+                } catch (error) {
+                    console.error('[ALBUM] Error calling playTrack:', error);
+                    alert('Ошибка воспроизведения: ' + error.message);
+                }
+            } else {
+                console.error('[ALBUM] window.playTrack not available or invalid');
+            }
+        } else if (window.playTrack && typeof window.playTrack === 'function') {
+            console.log('[ALBUM] setPlaylist not available, using fallback');
+            window.playlist = tracks;
+            window.currentTrackIndex = trackIndex;
+            try {
+                await window.playTrack(trackId);
+            } catch (error) {
+                console.error('[ALBUM] Error in fallback playTrack:', error);
+                alert('Ошибка воспроизведения: ' + error.message);
+            }
+        } else {
+            console.error('[ALBUM] Neither setPlaylist nor playTrack available');
+            alert('Плеер не доступен. Пожалуйста, обновите страницу.');
+        }
+    } catch (error) {
+        console.error('Error playing track from album:', error);
+        // Fallback: пытаемся воспроизвести трек напрямую
+        if (window.playTrack) {
+            try {
+                await window.playTrack(trackId);
+            } catch (e) {
+                console.error('Error in fallback playTrack:', e);
+                alert('Ошибка воспроизведения трека: ' + error.message);
+            }
+        } else {
+            alert('Ошибка воспроизведения трека: ' + error.message);
+        }
     }
+}
+
+
+// Check album favorite status (if all tracks are in favorites)
+async function checkAlbumFavoriteStatus(albumId) {
+    const user = window.api.getCurrentUser();
+    if (!user) return;
     
-    // Get full track objects from window.tracks
-    if (!window.tracks || window.tracks.length === 0) {
-        console.error('Tracks not loaded');
-        return;
-    }
-    
-    // Create playlist from album tracks
-    const tracks = albumTrackIds.map(id => 
-        window.tracks.find(t => t.id === id)
-    ).filter(t => t != null);
-    
-    if (tracks.length === 0) {
-        console.error('No tracks found for album');
-        return;
-    }
-    
-    // Set playlist starting from selected track
-    if (window.setPlaylist) {
-        window.setPlaylist(tracks, trackIndex);
-    } else if (window.playTrack) {
-        // Fallback: set playlist directly and play selected track
-        window.playlist = tracks;
-        window.currentTrackIndex = trackIndex;
-        window.playTrack(trackId);
+    try {
+        const allTracks = await window.api.getTracks();
+        const albumTracks = allTracks.filter(t => t.albumId === parseInt(albumId));
+        
+        if (albumTracks.length === 0) return;
+        
+        // Check if all tracks are in favorites
+        let allInFavorites = true;
+        for (const track of albumTracks) {
+            try {
+                const isFav = await window.api.isFavorite(user.id, track.id);
+                if (!isFav) {
+                    allInFavorites = false;
+                    break;
+                }
+            } catch (error) {
+                // Ignore errors
+            }
+        }
+        
+        const btn = document.getElementById('albumFavoriteBtn');
+        const icon = document.getElementById('albumFavoriteIcon');
+        
+        if (btn && icon && allInFavorites) {
+            btn.classList.add('active');
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+        }
+    } catch (error) {
+        console.warn('Error checking album favorite status:', error);
     }
 }
 

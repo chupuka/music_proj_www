@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ishak.da - Музыкальный стриминг</title>
+    <title>Aurora - Музыкальный стриминг</title>
     <link rel="icon" href="logo.jpg" type="image/jpeg">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/player.css">
@@ -14,10 +14,10 @@
     <header class="header">
         <div class="header-content">
             <div class="logo-section">
-                <a href="index.html" class="logo-link">
-                    <img src="logo.jpg" alt="ishak.da" class="logo-img">
+                <a href="#" class="logo-link" onclick="event.preventDefault(); if(typeof navigateToPage === 'function') { navigateToPage('my-music'); } else { window.location.href = 'index.html'; }">
+                    <img src="logo.jpg" alt="Aurora" class="logo-img">
                 </a>
-                <a href="index.html" class="site-name">ishak.da</a>
+                <a href="#" class="site-name" onclick="event.preventDefault(); if(typeof navigateToPage === 'function') { navigateToPage('my-music'); } else { window.location.href = 'index.html'; }">Aurora</a>
             </div>
             <div class="header-actions">
                 <div class="search-container">
@@ -37,7 +37,7 @@
                 </button>
                 <div class="user-menu" id="userMenu" style="display: none;">
                     <button class="btn-profile" id="profileBtn">
-                        <i class="fas fa-user-circle"></i> <span id="userName"></span>
+                        <span id="userName"></span>
                     </button>
                     <button class="btn-logout" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i> Выйти
@@ -52,45 +52,70 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item" data-page="playlists">
-                    <i class="fas fa-list"></i>
-                    <span>Плейлисты</span>
+                <a href="#" class="nav-item active" data-page="my-music">
+                    <i class="fas fa-music"></i>
+                    <span>Моя музыка</span>
                 </a>
-                <a href="#" class="nav-item" data-page="albums">
-                    <i class="fas fa-compact-disc"></i>
-                    <span>Альбомы</span>
+                <a href="#" class="nav-item" data-page="new-releases">
+                    <i class="fas fa-star"></i>
+                    <span>Новинки</span>
                 </a>
                 <a href="#" class="nav-item" data-page="artists">
                     <i class="fas fa-user-friends"></i>
                     <span>Исполнители</span>
                 </a>
+                <a href="#" class="nav-item" data-page="recommendations">
+                    <i class="fas fa-star"></i>
+                    <span>Рекомендации</span>
+                </a>
                 <a href="#" class="nav-item" data-page="genres">
                     <i class="fas fa-tags"></i>
                     <span>Жанры</span>
-                </a>
-                <a href="#" class="nav-item active" data-page="new-tracks">
-                    <i class="fas fa-star"></i>
-                    <span>Новинки</span>
                 </a>
             </nav>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Filters -->
-            <div class="filters">
-                <button class="filter-btn active" data-period="day">За день</button>
-                <button class="filter-btn" data-period="week">За неделю</button>
-                <button class="filter-btn" data-period="month">За месяц</button>
-                <button class="filter-btn" data-period="all">За все время</button>
+            <div class="page-header">
+                <h1 class="page-title" id="pageTitle">Моя музыка</h1>
             </div>
+            
+            <!-- Tabs for My Music -->
+            <div class="tabs-container" id="mainTabs" style="display: none;">
+                <button class="tab-btn-new active" data-tab="favorite-tracks">
+                    <i class="fas fa-heart"></i> Мои треки
+                </button>
+                <button class="tab-btn-new" data-tab="playlists">
+                    <i class="fas fa-list"></i> Мои плейлисты
+                </button>
+            </div>
+            
+            <!-- Tabs for New Releases -->
+            <div class="tabs-container" id="newReleasesTabs" style="display: none;">
+                <button class="tab-btn-new active" data-tab="new-tracks">
+                    <i class="fas fa-music"></i> Новые треки
+                </button>
+                <button class="tab-btn-new" data-tab="new-albums">
+                    <i class="fas fa-compact-disc"></i> Новые альбомы
+                </button>
+            </div>
+            
 
-            <!-- Tracks List -->
-            <div class="tracks-container">
-                <h2 class="section-title" id="sectionTitle">Топ треков</h2>
+            <!-- Content Container -->
+            <div class="tracks-container" id="mainContentContainer">
                 <div class="tracks-list" id="tracksList">
-                    <!-- Треки будут загружены через JavaScript -->
+                    <!-- Контент будет загружен через JavaScript -->
                 </div>
+                <!-- Sidebar for favorite artists in "Моя музыка" -->
+                <aside class="my-music-sidebar" id="myMusicSidebar" style="display: none;">
+                    <div class="sidebar-header">
+                        <h3>Мои исполнители</h3>
+                    </div>
+                    <div class="favorite-artists-list" id="favoriteArtistsList">
+                        <!-- Избранные исполнители будут загружены через JavaScript -->
+                    </div>
+                </aside>
             </div>
         </main>
     </div>
@@ -159,7 +184,7 @@
                 </div>
             </div>
             <div class="profile-content">
-                <h3>Любимые треки</h3>
+                <h3><i class="fas fa-heart"></i> Любимые треки</h3>
                 <div class="favorite-tracks" id="favoriteTracks">
                     <!-- Любимые треки будут загружены -->
                 </div>
@@ -221,4 +246,3 @@
     <script src="js/player.js"></script>
 </body>
 </html>
-

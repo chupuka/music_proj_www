@@ -37,9 +37,15 @@ public class Track {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
+    @Column(name = "is_new_release", nullable = false)
+    private Boolean isNewRelease = false;
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (isNewRelease == null) {
+            isNewRelease = false;
+        }
     }
     
     // Getters and Setters
@@ -114,5 +120,12 @@ public class Track {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+    
+    public Boolean getIsNewRelease() {
+        return isNewRelease != null ? isNewRelease : false;
+    }
+    
+    public void setIsNewRelease(Boolean isNewRelease) {
+        this.isNewRelease = isNewRelease != null ? isNewRelease : false;
+    }
 }
-

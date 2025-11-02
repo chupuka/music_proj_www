@@ -41,14 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Theme initialization
 function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     applyTheme(savedTheme);
     
     const themeToggle = document.getElementById('themeToggle');
     
-    if (themeToggle) {
+    if (themeToggle && !themeToggle.hasAttribute('data-theme-initialized')) {
+        themeToggle.setAttribute('data-theme-initialized', 'true');
         themeToggle.addEventListener('click', () => {
-            const currentTheme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+            const currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             applyTheme(newTheme);
             localStorage.setItem('theme', newTheme);
@@ -59,12 +60,12 @@ function initializeTheme() {
 function applyTheme(theme) {
     const themeIcon = document.getElementById('themeIcon');
     if (theme === 'dark') {
-        document.body.classList.add('dark-theme');
+        document.body.classList.remove('light-theme');
         if (themeIcon) {
             themeIcon.className = 'fas fa-sun';
         }
     } else {
-        document.body.classList.remove('dark-theme');
+        document.body.classList.add('light-theme');
         if (themeIcon) {
             themeIcon.className = 'fas fa-moon';
         }
@@ -229,6 +230,7 @@ function openEditModal(type, entity) {
             document.getElementById('trackDuration').value = entity.durationSeconds || '';
             document.getElementById('trackGenre').value = entity.genre || '';
             document.getElementById('trackFilePath').value = entity.filePath || '';
+            document.getElementById('trackIsNewRelease').checked = entity.isNewRelease || false;
             document.getElementById('trackFileUrl').value = '';
             // Заполняем URL обложки, если это URL, а не путь к файлу
             const artworkUrlInput = document.getElementById('trackArtworkUrl');
@@ -458,6 +460,7 @@ function getFormData(type) {
         if (duration) data.durationSeconds = parseInt(duration);
         data.genre = document.getElementById('trackGenre').value;
         data.filePath = document.getElementById('trackFilePath').value;
+        data.isNewRelease = document.getElementById('trackIsNewRelease').checked;
         // Если указан URL обложки, сохраняем его
         const artworkUrl = document.getElementById('trackArtworkUrl').value.trim();
         if (artworkUrl) {
@@ -577,11 +580,39 @@ async function loadTracks() {
     }
 }
 
+// Toggle new release status
+async function toggleNewRelease(trackId, isNewRelease) {
+    try {
+        const track = tracks.find(t => t.id === trackId);
+        if (!track) {
+            throw new Error('Трек не найден');
+        }
+        
+        // Update track
+        const updatedTrack = { ...track, isNewRelease: isNewRelease };
+        await window.api.updateTrack(trackId, updatedTrack);
+        
+        // Update local data
+        const index = tracks.findIndex(t => t.id === trackId);
+        if (index !== -1) {
+            tracks[index] = updatedTrack;
+        }
+        
+        // Show success message (simple alert for now)
+        alert('Статус новинки обновлен');
+    } catch (error) {
+        console.error('Error toggling new release:', error);
+        alert('Ошибка обновления статуса новинки: ' + error.message);
+        // Reload tracks to restore original state
+        loadTracks();
+    }
+}
+
 function renderTracks() {
     const tbody = document.getElementById('tracks-table-body');
     
     if (tracks.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-state-table"><i class="fas fa-music"></i><p>Треков пока нет</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-state-table"><i class="fas fa-music"></i><p>Треков пока нет</p></td></tr>';
         return;
     }
     
@@ -596,6 +627,25 @@ function renderTracks() {
                 <td>${escapeHtml(album ? album.title : '-')}</td>
                 <td>${formatDuration(track.durationSeconds || 0)}</td>
                 <td>${escapeHtml(track.genre || '-')}</td>
+                <td style="min-width: 200px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
+                        <div><i class="fas fa-headphones" style="color: #1142AA;"></i> <strong>Всего:</strong> ${track.playCountAll || 0}</div>
+                        <div style="color: #666;">
+                            <i class="fas fa-calendar-month"></i> Месяц: ${track.playCountMonth || 0} | 
+                            <i class="fas fa-calendar-week"></i> Неделя: ${track.playCountWeek || 0} | 
+                            <i class="fas fa-calendar-day"></i> День: ${track.playCountDay || 0}
+                        </div>
+                        <button class="btn-edit" onclick="openEditPlaysModal(${track.id})" style="margin-top: 4px; font-size: 11px; padding: 4px 8px;">
+                            <i class="fas fa-edit"></i> Изменить
+                        </button>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    <input type="checkbox" ${track.isNewRelease ? 'checked' : ''} 
+                           onchange="toggleNewRelease(${track.id}, this.checked)"
+                           style="width: 20px; height: 20px; cursor: pointer;"
+                           title="${track.isNewRelease ? 'Убрать из новинок' : 'Добавить в новинки'}">
+                </td>
                 <td>
                     <button class="btn-edit" onclick="openEditModal('track', ${JSON.stringify(track).replace(/"/g, '&quot;')})">
                         <i class="fas fa-edit"></i> Редактировать
@@ -1027,4 +1077,3 @@ async function uploadTrackFile(trackId, fileInputId) {
         throw error;
     }
 }
-

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ-панель - ishak.da</title>
+    <title>Админ-панель - Aurora</title>
     <link rel="icon" href="logo.jpg" type="image/jpeg">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/admin.css">
@@ -15,9 +15,9 @@
         <div class="header-content">
             <div class="logo-section">
                 <a href="index.html" class="logo-link">
-                    <img src="logo.jpg" alt="ishak.da" class="logo-img">
+                    <img src="logo.jpg" alt="Aurora" class="logo-img">
                 </a>
-                <a href="index.html" class="site-name">ishak.da</a>
+                <a href="index.html" class="site-name">Aurora</a>
             </div>
             <div class="header-actions">
                 <button class="btn-theme-toggle" id="themeToggle" title="Переключить тему">
@@ -130,11 +130,13 @@
                                 <th>Альбом</th>
                                 <th>Длительность</th>
                                 <th>Жанр</th>
+                                <th>Прослушивания</th>
+                                <th>Новинка</th>
                                 <th>Действия</th>
                             </tr>
                         </thead>
                         <tbody id="tracks-table-body">
-                            <tr><td colspan="7" class="loading-cell"><div class="spinner"></div></td></tr>
+                            <tr><td colspan="9" class="loading-cell"><div class="spinner"></div></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -279,6 +281,13 @@
                         <input type="text" id="trackGenre" name="genre">
                     </div>
                     <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="trackIsNewRelease" name="isNewRelease" style="width: 20px; height: 20px; cursor: pointer;">
+                            <span>Отметить как новинку</span>
+                        </label>
+                        <small style="color: #666; margin-top: 4px; display: block;">Треки, отмеченные как новинки, будут отображаться в разделе "Новинки"</small>
+                    </div>
+                    <div class="form-group">
                         <label for="trackFile">Аудио файл</label>
                         <input type="file" id="trackFile" name="audioFile" accept="audio/*">
                         <div id="trackFileStatus" class="upload-status"></div>
@@ -318,4 +327,3 @@
     <script src="js/admin.js"></script>
 </body>
 </html>
-

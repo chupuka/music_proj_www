@@ -2,9 +2,11 @@ package com.music.musiccatalogservice.repository;
 
 import com.music.musiccatalogservice.entity.TrackPlay;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,5 +21,9 @@ public interface TrackPlayRepository extends JpaRepository<TrackPlay, Long> {
     Long countByTrackIdAndPlayedAtAfter(@Param("trackId") Long trackId, @Param("since") LocalDateTime since);
     
     List<TrackPlay> findByTrackId(Long trackId);
+    
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM TrackPlay tp WHERE tp.trackId = :trackId")
+    void deleteByTrackId(@Param("trackId") Long trackId);
 }
-

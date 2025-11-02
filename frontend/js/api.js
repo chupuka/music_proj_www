@@ -66,27 +66,27 @@ class ApiService {
     // Auth Methods
     async login(emailOrUsername, password) {
         console.log('[API] login called with:', emailOrUsername);
-        // Попробуем сначала найти пользователя по email или username
-        const users = await this.request('/api/users');
-        const user = users.find(u => 
-            u.email === emailOrUsername || u.username === emailOrUsername
-        );
-        
-        if (!user) {
-            console.warn('[API] login failed - user not found');
-            throw new Error('Пользователь не найден');
+        try {
+            const user = await this.request('/api/users/login', {
+                method: 'POST',
+                body: JSON.stringify({
+                    emailOrUsername: emailOrUsername,
+                    password: password
+                }),
+            });
+            
+            this.user = user;
+            this.token = 'demo_token_' + user.id;
+            localStorage.setItem('authToken', this.token);
+            localStorage.setItem('user', JSON.stringify(user));
+            console.log('[API] login successful, user:', user);
+            console.log('[API] isAuthenticated now:', this.isAuthenticated());
+            
+            return user;
+        } catch (error) {
+            console.warn('[API] login failed:', error);
+            throw new Error(error.message || 'Ошибка входа. Проверьте логин и пароль.');
         }
-
-        // В реальном приложении здесь был бы отдельный endpoint для логина
-        // Для демо используем простую проверку
-        this.user = user;
-        this.token = 'demo_token_' + user.id;
-        localStorage.setItem('authToken', this.token);
-        localStorage.setItem('user', JSON.stringify(user));
-        console.log('[API] login successful, user:', user);
-        console.log('[API] isAuthenticated now:', this.isAuthenticated());
-        
-        return user;
     }
 
     async register(userData) {
@@ -224,6 +224,150 @@ class ApiService {
         });
     }
 
+    async setTrackPlayCounts(trackId, counts) {
+        return await this.request(`/api/tracks/${trackId}/play-counts`, {
+            method: 'POST',
+            body: JSON.stringify(counts),
+        });
+    }
+
+    // Analytics Methods
+    async recordTrackPlay(userId, trackId, durationSeconds, completed) {
+        try {
+            // Используем fetch напрямую для более надёжной обработки ошибок
+            const response = await fetch(`${this.baseUrl}/api/analytics/track-played`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    trackId: trackId,
+                    durationSeconds: durationSeconds,
+                    completed: completed
+                }),
+            });
+            
+            if (!response.ok && response.status !== 204) {
+                // Тихо игнорируем ошибки аналитики - не критично для работы приложения
+                const errorText = await response.text().catch(() => '');
+                console.warn('[API] Analytics service unavailable, continuing playback:', response.status, errorText);
+            }
+        } catch (error) {
+            // Тихо игнорируем ошибки аналитики - не критично для работы приложения
+            console.warn('[API] Failed to record track play (analytics service may be unavailable):', error.message);
+        }
+    }
+
+    async getUserHistory(userId, limit = 50) {
+        try {
+            return await this.request(`/api/analytics/user/${userId}/history?limit=${limit}`);
+        } catch (error) {
+            console.warn('[API] Failed to get user history:', error);
+            return [];
+        }
+    }
+
+    async getUserStatistics(userId) {
+        try {
+            return await this.request(`/api/analytics/user/${userId}/stats`);
+        } catch (error) {
+            console.warn('[API] Failed to get user statistics:', error);
+            return null;
+        }
+    }
+
+    // Recommendation Methods
+    async getRecommendedTracks(userId) {
+        try {
+            return await this.request(`/api/recommendations/user/${userId}/tracks`);
+        } catch (error) {
+            console.warn('[API] Failed to get recommendations:', error);
+            return [];
+        }
+    }
+
+    // Search Methods
+    async search(query) {
+        try {
+            return await this.request(`/api/search?q=${encodeURIComponent(query)}`);
+        } catch (error) {
+            console.warn('[API] Search failed:', error);
+            return { tracks: [], artists: [], albums: [] };
+        }
+    }
+
+    async getSearchSuggestions(query) {
+        try {
+            return await this.request(`/api/search/suggestions?q=${encodeURIComponent(query)}`);
+        } catch (error) {
+            console.warn('[API] Search suggestions failed:', error);
+            return [];
+        }
+    }
+    
+    // New Releases Methods
+    async getNewTracks(limit = 20) {
+        try {
+            // Use new endpoint for new releases
+            const newTracks = await this.request('/api/tracks/new-releases');
+            // Sort by createdAt (newest first) and limit
+            const sorted = newTracks.sort((a, b) => {
+                const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                return dateB - dateA;
+            });
+            return sorted.slice(0, limit);
+        } catch (error) {
+            console.warn('[API] Failed to get new releases, falling back to all tracks:', error);
+            // Fallback to old method
+            try {
+                const allTracks = await this.getTracks();
+                const sorted = allTracks.sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                    const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                    return dateB - dateA;
+                });
+                return sorted.slice(0, limit);
+            } catch (fallbackError) {
+                console.error('[API] Error getting new tracks:', fallbackError);
+                return [];
+            }
+        }
+    }
+    
+    async getNewAlbums(limit = 20) {
+        try {
+            const albums = await this.getAlbums();
+            // Sort by releaseDate or createdAt (newest first)
+            const sorted = [...albums].sort((a, b) => {
+                const dateA = new Date(a.releaseDate || a.createdAt || 0);
+                const dateB = new Date(b.releaseDate || b.createdAt || 0);
+                return dateB - dateA;
+            });
+            return sorted.slice(0, limit);
+        } catch (error) {
+            console.error('[API] Error getting new albums:', error);
+            return [];
+        }
+    }
+    
+    async getPopularTracks(limit = 20) {
+        try {
+            const tracks = await this.getTracks();
+            // Sort by play count (most popular first)
+            const sorted = [...tracks].sort((a, b) => {
+                const countA = a.playCountAll || a.playCount || 0;
+                const countB = b.playCountAll || b.playCount || 0;
+                return countB - countA;
+            });
+            return sorted.slice(0, limit);
+        } catch (error) {
+            console.error('[API] Error getting popular tracks:', error);
+            return [];
+        }
+    }
+
     // Playlist Methods
     async getPlaylists(userId) {
         if (userId) {
@@ -335,6 +479,63 @@ class ApiService {
         }
     }
     
+    // Favorite Albums
+    async addFavoriteAlbum(userId, albumId) {
+        return await this.request('/api/favorite-albums', {
+            method: 'POST',
+            body: JSON.stringify({ userId, albumId }),
+        });
+    }
+    
+    async removeFavoriteAlbum(userId, albumId) {
+        return await this.request(`/api/favorite-albums/user/${userId}/album/${albumId}`, {
+            method: 'DELETE',
+        });
+    }
+    
+    async isFavoriteAlbum(userId, albumId) {
+        try {
+            const result = await this.request(`/api/favorite-albums/user/${userId}/album/${albumId}`);
+            return result;
+        } catch {
+            return false;
+        }
+    }
+    
+    // Favorite Artists
+    async addFavoriteArtist(userId, artistId) {
+        return await this.request('/api/favorite-artists', {
+            method: 'POST',
+            body: JSON.stringify({ userId, artistId }),
+        });
+    }
+    
+    async removeFavoriteArtist(userId, artistId) {
+        return await this.request(`/api/favorite-artists/user/${userId}/artist/${artistId}`, {
+            method: 'DELETE',
+        });
+    }
+    
+    async isFavoriteArtist(userId, artistId) {
+        try {
+            const result = await this.request(`/api/favorite-artists/user/${userId}/artist/${artistId}`);
+            return result;
+        } catch {
+            return false;
+        }
+    }
+    
+    async getFavoriteArtists(userId) {
+        try {
+            const result = await this.request(`/api/favorite-artists/user/${userId}`);
+            return result || [];
+        } catch {
+            // Fallback to localStorage
+            const stored = localStorage.getItem(`favoriteArtists_${userId}`);
+            return stored ? JSON.parse(stored) : [];
+        }
+    }
+    
     // Track Plays Methods
     async recordTrackPlay(trackId) {
         try {
@@ -372,4 +573,3 @@ console.log('[API] Initial user:', api.getCurrentUser());
 window.api = api;
 window.API_BASE_URL = API_BASE_URL;
 console.log('[API] window.api set:', typeof window.api);
-

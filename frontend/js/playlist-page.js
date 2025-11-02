@@ -161,25 +161,82 @@ async function loadPlaylistDetails(playlistId) {
                 const track = window.tracks.find(t => t.id === trackData.id || t.id === parseInt(trackData));
                 if (!track) return;
                 
-                const artworkUrl = getArtworkUrl(track);
-                const hasArtwork = artworkUrl && artworkUrl.trim() !== '';
-                const artist = window.artists.find(a => a.id === track.artistId);
+                // Используем глобальную функцию getArtworkUrl или локальную
+                let artworkUrl = '';
+                if (typeof window.getArtworkUrl === 'function') {
+                    try {
+                        artworkUrl = window.getArtworkUrl(track);
+                    } catch (e) {
+                        console.warn('Error calling window.getArtworkUrl:', e);
+                    }
+                }
+                
+                // Fallback если глобальная функция не сработала
+                if (!artworkUrl || artworkUrl.trim() === '') {
+                    const apiBaseUrl = window.API_BASE_URL || 'http://localhost:8080';
+                    
+                    // Проверяем track artwork
+                    if (track.artworkPath && track.artworkPath.trim() !== '') {
+                        if (track.artworkPath.startsWith('http://') || track.artworkPath.startsWith('https://')) {
+                            artworkUrl = track.artworkPath;
+                        } else if (track.id) {
+                            artworkUrl = `${apiBaseUrl}/api/files/artwork/tracks/${track.id}`;
+                        }
+                    }
+                    
+                    // Проверяем album artwork
+                    if ((!artworkUrl || artworkUrl.trim() === '') && track.albumId && window.albums && window.albums.length > 0) {
+                        const album = window.albums.find(a => a.id === track.albumId);
+                        if (album && album.artworkPath && album.artworkPath.trim() !== '') {
+                            if (album.artworkPath.startsWith('http://') || album.artworkPath.startsWith('https://')) {
+                                artworkUrl = album.artworkPath;
+                            } else if (album.id) {
+                                artworkUrl = `${apiBaseUrl}/api/files/artwork/albums/${album.id}`;
+                            }
+                        }
+                    }
+                    
+                    // Проверяем artist image
+                    if ((!artworkUrl || artworkUrl.trim() === '') && track.artistId && window.artists && window.artists.length > 0) {
+                        const artist = window.artists.find(a => a.id === track.artistId);
+                        if (artist && artist.imagePath && artist.imagePath.trim() !== '') {
+                            if (artist.imagePath.startsWith('http://') || artist.imagePath.startsWith('https://')) {
+                                artworkUrl = artist.imagePath;
+                            } else if (artist.id) {
+                                artworkUrl = `${apiBaseUrl}/api/files/artwork/artists/${artist.id}`;
+                            }
+                        }
+                    }
+                }
+                
+                const hasArtwork = artworkUrl && artworkUrl.trim() !== '' && artworkUrl !== 'undefined' && artworkUrl !== 'null';
+                const artist = window.artists && window.artists.length > 0 ? window.artists.find(a => a.id === track.artistId) : null;
                 const artistName = artist ? artist.name : 'Неизвестный исполнитель';
+                const duration = formatDuration(track.durationSeconds || 0);
+                
+                // Формируем стиль для artwork
+                let artworkStyle = '';
+                if (hasArtwork) {
+                    artworkStyle = `background-image: url('${artworkUrl}'); background-size: cover; background-position: center;`;
+                } else {
+                    artworkStyle = 'background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;';
+                }
                 
                 html += `
                     <div class="track-item" data-track-id="${track.id}">
                         <div class="track-number">${index + 1}</div>
-                        <div class="track-artwork" style="${hasArtwork ? `background-image: url('${artworkUrl}'); background-size: cover; background-position: center;` : ''}">
+                        <button class="btn-play" onclick="playTrackFromPlaylist(${track.id}, ${playlist.id})" title="Воспроизвести">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div class="track-artwork" style="${artworkStyle}">
                             ${!hasArtwork ? '<i class="fas fa-music"></i>' : ''}
                         </div>
                         <div class="track-info">
                             <a href="track.html?id=${track.id}" class="track-title track-link">${escapeHtml(track.title)}</a>
                             <a href="artist.html?id=${track.artistId}" class="track-artist track-link">${escapeHtml(artistName)}</a>
                         </div>
+                        <div class="track-duration">${duration}</div>
                         <div class="track-actions">
-                            <button class="btn-play" onclick="playTrackFromPlaylist(${track.id}, ${playlist.id})" title="Воспроизвести">
-                                <i class="fas fa-play"></i>
-                            </button>
                             ${isOwner ? `
                                 <button class="btn-favorite" onclick="removeTrackFromPlaylist(${playlist.id}, ${track.id})" title="Удалить из плейлиста">
                                     <i class="fas fa-trash"></i>
@@ -250,6 +307,13 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function formatDuration(seconds) {
+    if (!seconds || seconds === 0) return '0:00';
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
 async function playPlaylist(playlistId) {
     try {
         const tracks = await api.getPlaylistTracks(playlistId);
@@ -267,12 +331,37 @@ async function playPlaylist(playlistId) {
             return;
         }
         
-        if (window.setPlaylist) {
+        // Устанавливаем плейлист и начинаем воспроизведение первого трека
+        console.log('[PLAYLIST] Setting playlist with', trackList.length, 'tracks');
+        if (window.setPlaylist && typeof window.setPlaylist === 'function') {
             window.setPlaylist(trackList, 0);
-        } else if (window.playTrack) {
+            console.log('[PLAYLIST] Playlist set, calling playTrack for track:', trackList[0]?.id);
+            // Явно запускаем первый трек после установки плейлиста
+            if (window.playTrack && typeof window.playTrack === 'function' && trackList[0] && trackList[0].id) {
+                try {
+                    await window.playTrack(trackList[0].id);
+                    console.log('[PLAYLIST] playTrack called successfully');
+                } catch (error) {
+                    console.error('[PLAYLIST] Error calling playTrack:', error);
+                    alert('Ошибка воспроизведения: ' + error.message);
+                }
+            } else {
+                console.error('[PLAYLIST] window.playTrack not available or invalid');
+                alert('Плеер не доступен. Пожалуйста, обновите страницу.');
+            }
+        } else if (window.playTrack && typeof window.playTrack === 'function') {
+            console.log('[PLAYLIST] setPlaylist not available, using fallback');
             window.playlist = trackList;
             window.currentTrackIndex = 0;
-            window.playTrack(trackList[0].id);
+            try {
+                await window.playTrack(trackList[0].id);
+            } catch (error) {
+                console.error('[PLAYLIST] Error in fallback playTrack:', error);
+                alert('Ошибка воспроизведения: ' + error.message);
+            }
+        } else {
+            console.error('[PLAYLIST] Neither setPlaylist nor playTrack available');
+            alert('Плеер не доступен. Пожалуйста, обновите страницу.');
         }
     } catch (error) {
         console.error('Error playing playlist:', error);
@@ -293,24 +382,59 @@ async function playTrackFromPlaylist(trackId, playlistId) {
         }).filter(t => t != null);
         
         const trackIndex = trackList.findIndex(t => t.id === trackId);
+        
         if (trackIndex === -1) {
+            // Если трек не найден в плейлисте, просто воспроизводим его
             if (window.playTrack) {
-                window.playTrack(trackId);
+                await window.playTrack(trackId);
             }
             return;
         }
         
-        if (window.setPlaylist) {
+        // Устанавливаем плейлист и начинаем воспроизведение
+        console.log('[PLAYLIST] Setting playlist with', trackList.length, 'tracks, starting at index:', trackIndex);
+        if (window.setPlaylist && typeof window.setPlaylist === 'function') {
             window.setPlaylist(trackList, trackIndex);
-        } else if (window.playTrack) {
+            console.log('[PLAYLIST] Playlist set, calling playTrack for track:', trackList[trackIndex]?.id);
+            // Явно запускаем трек после установки плейлиста
+            if (window.playTrack && typeof window.playTrack === 'function' && trackList[trackIndex] && trackList[trackIndex].id) {
+                try {
+                    await window.playTrack(trackList[trackIndex].id);
+                    console.log('[PLAYLIST] playTrack called successfully');
+                } catch (error) {
+                    console.error('[PLAYLIST] Error calling playTrack:', error);
+                    alert('Ошибка воспроизведения: ' + error.message);
+                }
+            } else {
+                console.error('[PLAYLIST] window.playTrack not available or invalid');
+                alert('Плеер не доступен. Пожалуйста, обновите страницу.');
+            }
+        } else if (window.playTrack && typeof window.playTrack === 'function') {
+            console.log('[PLAYLIST] setPlaylist not available, using fallback');
             window.playlist = trackList;
             window.currentTrackIndex = trackIndex;
-            window.playTrack(trackId);
+            try {
+                await window.playTrack(trackId);
+            } catch (error) {
+                console.error('[PLAYLIST] Error in fallback playTrack:', error);
+                alert('Ошибка воспроизведения: ' + error.message);
+            }
+        } else {
+            console.error('[PLAYLIST] Neither setPlaylist nor playTrack available');
+            alert('Плеер не доступен. Пожалуйста, обновите страницу.');
         }
     } catch (error) {
         console.error('Error playing track from playlist:', error);
+        // Fallback: пытаемся воспроизвести трек напрямую
         if (window.playTrack) {
-            window.playTrack(trackId);
+            try {
+                await window.playTrack(trackId);
+            } catch (e) {
+                console.error('Error in fallback playTrack:', e);
+                alert('Ошибка воспроизведения трека: ' + error.message);
+            }
+        } else {
+            alert('Ошибка воспроизведения трека: ' + error.message);
         }
     }
 }
@@ -391,11 +515,15 @@ async function handleEditPlaylist(e, playlistId) {
 
 async function openAddTrackToPlaylistModal(playlistId) {
     try {
+        // Загружаем треки, артистов и альбомы перед отображением (нужны для artwork)
         if (!window.tracks || window.tracks.length === 0) {
             window.tracks = await api.getTracks();
         }
         if (!window.artists || window.artists.length === 0) {
             window.artists = await api.getArtists();
+        }
+        if (!window.albums || window.albums.length === 0) {
+            window.albums = await api.getAlbums();
         }
         
         const playlist = await api.getPlaylistById(playlistId);
@@ -404,21 +532,62 @@ async function openAddTrackToPlaylistModal(playlistId) {
         
         const availableTracks = window.tracks.filter(t => !playlistTrackIds.has(t.id));
         
-        // Используем локальную функцию getArtworkUrl, чтобы избежать конфликта
+        // Используем глобальную функцию getArtworkUrl для правильного получения artwork
         const getArtworkUrlLocal = (track) => {
-            if (typeof window.getArtworkUrl === 'function' && window.getArtworkUrl !== getArtworkUrl) {
+            // Сначала пытаемся использовать глобальную функцию getArtworkUrl из app.js
+            if (typeof window.getArtworkUrl === 'function') {
                 try {
-                    return window.getArtworkUrl(track);
+                    const artwork = window.getArtworkUrl(track);
+                    if (artwork && artwork.trim() !== '') {
+                        return artwork;
+                    }
                 } catch (e) {
-                    // Fallback
+                    console.warn('Error calling window.getArtworkUrl:', e);
                 }
             }
+            
+            // Fallback: проверяем track -> album -> artist
             if (!track) return '';
-            const imagePath = track.artworkPath;
-            if (imagePath && (imagePath.startsWith('http://') || imagePath.startsWith('https://'))) {
-                return imagePath;
+            
+            const apiBaseUrl = window.API_BASE_URL || 'http://localhost:8080';
+            
+            // Сначала пытаемся получить обложку трека
+            if (track.artworkPath && track.artworkPath.trim() !== '') {
+                if (track.artworkPath.startsWith('http://') || track.artworkPath.startsWith('https://')) {
+                    return track.artworkPath;
+                }
+                if (track.id) {
+                    return `${apiBaseUrl}/api/files/artwork/tracks/${track.id}`;
+                }
             }
-            return track.artworkPath && track.id ? `${window.API_BASE_URL || 'http://localhost:8080'}/api/files/artwork/tracks/${track.id}` : '';
+            
+            // Затем обложку альбома
+            if (track.albumId && window.albums && window.albums.length > 0) {
+                const album = window.albums.find(a => a.id === track.albumId);
+                if (album && album.artworkPath && album.artworkPath.trim() !== '') {
+                    if (album.artworkPath.startsWith('http://') || album.artworkPath.startsWith('https://')) {
+                        return album.artworkPath;
+                    }
+                    if (album.id) {
+                        return `${apiBaseUrl}/api/files/artwork/albums/${album.id}`;
+                    }
+                }
+            }
+            
+            // Затем фото артиста
+            if (track.artistId && window.artists && window.artists.length > 0) {
+                const artist = window.artists.find(a => a.id === track.artistId);
+                if (artist && artist.imagePath && artist.imagePath.trim() !== '') {
+                    if (artist.imagePath.startsWith('http://') || artist.imagePath.startsWith('https://')) {
+                        return artist.imagePath;
+                    }
+                    if (artist.id) {
+                        return `${apiBaseUrl}/api/files/artwork/artists/${artist.id}`;
+                    }
+                }
+            }
+            
+            return '';
         };
         
         const modal = document.createElement('div');
@@ -430,13 +599,13 @@ async function openAddTrackToPlaylistModal(playlistId) {
                 <h3>Добавить треки в "${escapeHtml(playlist.name)}"</h3>
                 <div class="tracks-list">
                     ${availableTracks.length === 0 ? '<div class="empty-state"><p>Нет доступных треков</p></div>' : availableTracks.map(track => {
-                        const artist = window.artists.find(a => a.id === track.artistId);
+                        const artist = window.artists && window.artists.length > 0 ? window.artists.find(a => a.id === track.artistId) : null;
                         const artistName = artist ? artist.name : 'Неизвестный исполнитель';
                         const artworkUrl = getArtworkUrlLocal(track);
-                        const hasArtwork = artworkUrl && artworkUrl.trim() !== '';
+                        const hasArtwork = artworkUrl && artworkUrl.trim() !== '' && artworkUrl !== 'undefined' && artworkUrl !== 'null';
                         return `
                             <div class="track-item" data-track-id="${track.id}">
-                                <div class="track-artwork" style="${hasArtwork ? `background-image: url('${artworkUrl}'); background-size: cover; background-position: center;` : ''}">
+                                <div class="track-artwork" style="${hasArtwork ? `background-image: url('${artworkUrl}'); background-size: cover; background-position: center;` : 'background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;'}">
                                     ${!hasArtwork ? '<i class="fas fa-music"></i>' : ''}
                                 </div>
                                 <div class="track-info">

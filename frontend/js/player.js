@@ -46,10 +46,18 @@ function initializePlayer() {
     audioElement.addEventListener('play', () => {
         isPlaying = true;
         updatePlayPauseButton();
+        // Notify app.js to update play buttons
+        if (window.updatePlayButtons && typeof window.updatePlayButtons === 'function') {
+            setTimeout(() => window.updatePlayButtons(), 50);
+        }
     });
     audioElement.addEventListener('pause', () => {
         isPlaying = false;
         updatePlayPauseButton();
+        // Notify app.js to update play buttons
+        if (window.updatePlayButtons && typeof window.updatePlayButtons === 'function') {
+            setTimeout(() => window.updatePlayButtons(), 50);
+        }
     });
     
     // Volume
@@ -105,8 +113,39 @@ function initializePlayer() {
     });
 }
 
-// Play Track
-function playTrack(trackId) {
+// Get current track info
+function getCurrentTrackInfo() {
+    return {
+        track: currentTrack,
+        trackId: currentTrack ? currentTrack.id : null,
+        isPlaying: isPlaying
+    };
+}
+
+// Play Track (with pause logic if already playing)
+async function playTrack(trackId) {
+    console.log('[PLAYER] playTrack called with trackId:', trackId);
+    console.log('[PLAYER] Current track:', currentTrack?.id, 'isPlaying:', isPlaying);
+    
+    // If the same track is already playing, toggle pause/play
+    if (currentTrack && currentTrack.id === trackId && isPlaying) {
+        console.log('[PLAYER] Same track playing, toggling pause');
+        togglePlayPause();
+        return;
+    }
+    
+    // If the same track is paused, resume it (preserve current time)
+    if (currentTrack && currentTrack.id === trackId && !isPlaying) {
+        console.log('[PLAYER] Same track paused, resuming');
+        // Resume from where it was paused, don't reset
+        isPlaying = true;
+        audioElement.play().catch(err => {
+            console.error('[PLAYER] Error resuming playback:', err);
+            isPlaying = false;
+        });
+        return;
+    }
+    
     // Find track in current playlist first
     let track = null;
     let foundIndex = -1;
@@ -120,7 +159,7 @@ function playTrack(trackId) {
     
     // If not found in playlist, try to find in all tracks
     if (!track) {
-        // Try to find in window.tracks
+        // Try to find in window.tracks first
         const allTracks = window.tracks || [];
         const globalTrack = allTracks.find(t => t.id === trackId);
         if (globalTrack) {
@@ -128,11 +167,32 @@ function playTrack(trackId) {
             playlist = [...allTracks];
             foundIndex = allTracks.findIndex(t => t.id === trackId);
             track = globalTrack;
+        } else {
+            // If not found in window.tracks, try to fetch from API
+            console.log('[PLAYER] Track not in window.tracks, fetching from API:', trackId);
+            if (window.api && window.api.getTrackById) {
+                try {
+                    const fetchedTrack = await window.api.getTrackById(trackId);
+                    if (fetchedTrack) {
+                        track = fetchedTrack;
+                        // Create a single-track playlist
+                        playlist = [fetchedTrack];
+                        foundIndex = 0;
+                        // Update window.tracks if available
+                        if (window.tracks && !window.tracks.find(t => t.id === trackId)) {
+                            window.tracks.push(fetchedTrack);
+                        }
+                    }
+                } catch (error) {
+                    console.error('[PLAYER] Error fetching track:', error);
+                }
+            }
         }
     }
     
     if (!track) {
-        console.error('Track not found:', trackId);
+        console.error('[PLAYER] Track not found:', trackId);
+        alert('Трек не найден. Пожалуйста, попробуйте обновить страницу.');
         return;
     }
     
@@ -195,15 +255,25 @@ function playTrack(trackId) {
                 totalTimeEl.textContent = formatTime(track.durationSeconds);
             }
             
+            // Record track play start in analytics (тихо, без ошибок в UI)
+            if (window.api && window.api.getCurrentUser && window.api.recordTrackPlay) {
+                const user = window.api.getCurrentUser();
+                if (user && track.id) {
+                    // Record play start (not completed yet) - тихо игнорируем ошибки
+                    window.api.recordTrackPlay(user.id, track.id, 0, false)
+                        .catch(() => {
+                            // Тихо игнорируем - аналитика не критична для воспроизведения
+                        });
+                }
+            }
+            
             // Try to play
             audioElement.play().then(() => {
-                console.log('Audio playback started');
-                // Record track play
-                if (window.api && window.api.recordTrackPlay) {
-                    window.api.recordTrackPlay(trackId);
-                }
+                console.log('[PLAYER] Audio playback started');
+                isPlaying = true;
             }).catch(err => {
-                console.error('Ошибка воспроизведения:', err);
+                console.error('[PLAYER] Ошибка воспроизведения:', err);
+                isPlaying = false;
                 alert('Не удалось воспроизвести трек. Возможно, файл не поддерживается или поврежден.');
             });
         };
@@ -255,7 +325,45 @@ function updatePlayPauseButton() {
 
 // Previous/Next
 function previousTrack() {
-    if (playlist.length === 0) return;
+    // Если плейлист пустой, пытаемся создать его из текущих треков на экране
+    if (playlist.length === 0) {
+        // Сначала пытаемся использовать favoriteTracks
+        if (window.favoriteTracks && window.favoriteTracks.length > 0) {
+            playlist = [...window.favoriteTracks];
+            if (currentTrack) {
+                currentTrackIndex = playlist.findIndex(t => t.id === currentTrack.id);
+                if (currentTrackIndex === -1) currentTrackIndex = 0;
+            } else {
+                currentTrackIndex = 0;
+            }
+        } else if (window.filteredTracks && window.filteredTracks.length > 0) {
+            // Затем используем filteredTracks (треки на экране)
+            playlist = [...window.filteredTracks];
+            if (currentTrack) {
+                currentTrackIndex = playlist.findIndex(t => t.id === currentTrack.id);
+                if (currentTrackIndex === -1) currentTrackIndex = 0;
+            } else {
+                currentTrackIndex = 0;
+            }
+        } else if (window.tracks && window.tracks.length > 0) {
+            // Затем используем все треки
+            playlist = [...window.tracks];
+            if (currentTrack) {
+                currentTrackIndex = playlist.findIndex(t => t.id === currentTrack.id);
+                if (currentTrackIndex === -1) currentTrackIndex = 0;
+            } else {
+                currentTrackIndex = 0;
+            }
+        } else {
+            console.warn('[PLAYER] No playlist available for previous track');
+            return;
+        }
+    }
+    
+    // Проверяем, что текущий индекс валидный
+    if (currentTrackIndex < 0 || currentTrackIndex >= playlist.length) {
+        currentTrackIndex = 0;
+    }
     
     if (isShuffled) {
         currentTrackIndex = Math.floor(Math.random() * playlist.length);
@@ -263,11 +371,54 @@ function previousTrack() {
         currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
     }
     
-    playTrack(playlist[currentTrackIndex].id);
+    const nextTrack = playlist[currentTrackIndex];
+    if (nextTrack && nextTrack.id) {
+        playTrack(nextTrack.id);
+    } else {
+        console.error('[PLAYER] Invalid track at index:', currentTrackIndex);
+    }
 }
 
 function nextTrack() {
-    if (playlist.length === 0) return;
+    // Если плейлист пустой, пытаемся создать его из текущих треков на экране
+    if (playlist.length === 0) {
+        // Сначала пытаемся использовать favoriteTracks
+        if (window.favoriteTracks && window.favoriteTracks.length > 0) {
+            playlist = [...window.favoriteTracks];
+            if (currentTrack) {
+                currentTrackIndex = playlist.findIndex(t => t.id === currentTrack.id);
+                if (currentTrackIndex === -1) currentTrackIndex = 0;
+            } else {
+                currentTrackIndex = 0;
+            }
+        } else if (window.filteredTracks && window.filteredTracks.length > 0) {
+            // Затем используем filteredTracks (треки на экране)
+            playlist = [...window.filteredTracks];
+            if (currentTrack) {
+                currentTrackIndex = playlist.findIndex(t => t.id === currentTrack.id);
+                if (currentTrackIndex === -1) currentTrackIndex = 0;
+            } else {
+                currentTrackIndex = 0;
+            }
+        } else if (window.tracks && window.tracks.length > 0) {
+            // Затем используем все треки
+            playlist = [...window.tracks];
+            if (currentTrack) {
+                currentTrackIndex = playlist.findIndex(t => t.id === currentTrack.id);
+                if (currentTrackIndex === -1) currentTrackIndex = 0;
+            } else {
+                currentTrackIndex = 0;
+            }
+        } else {
+            console.warn('[PLAYER] No playlist available for next track');
+            return;
+        }
+    }
+    
+    // Проверяем, что текущий индекс валидный
+    if (currentTrackIndex < 0 || currentTrackIndex >= playlist.length) {
+        currentTrackIndex = 0;
+    }
     
     if (isShuffled) {
         currentTrackIndex = Math.floor(Math.random() * playlist.length);
@@ -275,10 +426,27 @@ function nextTrack() {
         currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
     }
     
-    playTrack(playlist[currentTrackIndex].id);
+    const nextTrack = playlist[currentTrackIndex];
+    if (nextTrack && nextTrack.id) {
+        playTrack(nextTrack.id);
+    } else {
+        console.error('[PLAYER] Invalid track at index:', currentTrackIndex);
+    }
 }
 
 function onTrackEnd() {
+    // Record track completion in analytics (тихо, без ошибок в UI)
+    if (currentTrack && window.api && window.api.getCurrentUser && window.api.recordTrackPlay) {
+        const user = window.api.getCurrentUser();
+        if (user && currentTrack.id && audioElement.duration) {
+            const durationSeconds = Math.floor(audioElement.duration);
+            window.api.recordTrackPlay(user.id, currentTrack.id, durationSeconds, true)
+                .catch(() => {
+                    // Тихо игнорируем - аналитика не критична для воспроизведения
+                });
+        }
+    }
+    
     if (isRepeated) {
         audioElement.currentTime = 0;
         audioElement.play();
@@ -477,17 +645,14 @@ function setPlaylist(tracksArray, startIndex = 0) {
     playlist = [...tracksArray];
     currentTrackIndex = startIndex;
     
-    // Play the track at start index
-    const trackToPlay = playlist[currentTrackIndex];
-    if (trackToPlay && trackToPlay.id) {
-        playTrack(trackToPlay.id);
-    } else {
-        console.error('Invalid track at index:', startIndex);
-    }
+    // НЕ воспроизводим трек автоматически - только устанавливаем плейлист
+    // Воспроизведение должно происходить только при явном вызове playTrack() пользователем
+    // Не обновляем currentTrack и UI - это будет сделано при явном воспроизведении
 }
 
 // Update global playTrack function and state
 window.playTrack = playTrack;
+window.getCurrentTrackInfo = getCurrentTrackInfo;
 window.previousTrack = previousTrack;
 window.nextTrack = nextTrack;
 window.togglePlayPause = togglePlayPause;
@@ -699,4 +864,3 @@ window.addEventListener('load', () => {
         }
     }
 });
-

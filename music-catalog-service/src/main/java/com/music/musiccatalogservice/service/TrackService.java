@@ -30,6 +30,7 @@ public class TrackService {
         track.setFilePath(trackDTO.getFilePath());
         track.setGenre(trackDTO.getGenre());
         track.setArtworkPath(trackDTO.getArtworkPath());
+        track.setIsNewRelease(trackDTO.getIsNewRelease());
         
         Track savedTrack = trackRepository.save(track);
         return convertToDTO(savedTrack);
@@ -88,6 +89,9 @@ public class TrackService {
         if (trackDTO.getArtworkPath() != null) {
             track.setArtworkPath(trackDTO.getArtworkPath());
         }
+        if (trackDTO.getIsNewRelease() != null) {
+            track.setIsNewRelease(trackDTO.getIsNewRelease());
+        }
         
         Track updatedTrack = trackRepository.save(track);
         return convertToDTO(updatedTrack);
@@ -107,6 +111,13 @@ public class TrackService {
                 .collect(Collectors.toList());
     }
     
+    @Transactional(readOnly = true)
+    public List<TrackDTO> getNewReleaseTracks() {
+        return trackRepository.findByIsNewReleaseTrueOrderByCreatedAtDesc().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
     private TrackDTO convertToDTO(Track track) {
         TrackDTO dto = new TrackDTO();
         dto.setId(track.getId());
@@ -118,6 +129,7 @@ public class TrackService {
         dto.setGenre(track.getGenre());
         dto.setArtworkPath(track.getArtworkPath());
         dto.setCreatedAt(track.getCreatedAt());
+        dto.setIsNewRelease(track.getIsNewRelease());
         
         // Get play counts
         Map<String, Long> counts = trackPlayService.getPlayCounts(track.getId());
@@ -129,4 +141,3 @@ public class TrackService {
         return dto;
     }
 }
-

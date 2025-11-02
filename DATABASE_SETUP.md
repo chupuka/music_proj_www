@@ -52,10 +52,11 @@ docker-compose down -v    # Остановка с удалением всех д
 
 ### Параметры подключения (для application.properties):
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/music_prilo_db
+spring.datasource.url=jdbc:postgresql://localhost:5433/music_prilo_db
 spring.datasource.username=username
 spring.datasource.password=durak123
 ```
+**Примечание**: Используется порт 5433, так как 5432 занят локальной установкой PostgreSQL.
 
 ### Что происходит автоматически:
 
@@ -210,14 +211,15 @@ docker rm music_postgres
 docker-compose up -d
 ```
 
-### Ошибка: "порт 5432 уже занят"
+### Ошибка: "порт 5432 уже занят" (уже исправлено в проекте)
+Если порт 5432 уже занят локальной установкой PostgreSQL:
 ```bash
 # Проверьте, что использует порт
 netstat -ano | findstr :5432  # Windows
 lsof -i :5432                  # Linux/Mac
 
-# Измените порт в docker-compose.yml (например, на 5433)
-# И обновите application.properties соответственно
+# В данном проекте порт уже изменен на 5433 в docker-compose.yml
+# И application.properties всех сервисов обновлены соответственно
 ```
 
 ### Ошибка: "права доступа при миграциях"

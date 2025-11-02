@@ -12,5 +12,6 @@ public interface TrackRepository extends JpaRepository<Track, Long> {
     List<Track> findByAlbumId(Long albumId);
     List<Track> findByTitleContainingIgnoreCase(String title);
     List<Track> findByGenre(String genre);
+    List<Track> findByIsNewReleaseTrue();
+    List<Track> findByIsNewReleaseTrueOrderByCreatedAtDesc();
 }
-

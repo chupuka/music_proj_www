@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -101,6 +102,22 @@ public class UserService {
             throw new RuntimeException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
+    }
+    
+    @Transactional(readOnly = true)
+    public UserDTO login(String emailOrUsername, String password) {
+        Optional<User> userOpt = userRepository.findByUsername(emailOrUsername);
+        if (!userOpt.isPresent()) {
+            userOpt = userRepository.findByEmail(emailOrUsername);
+        }
+        
+        User user = userOpt.orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (!user.getPassword().equals(password)) {
+            throw new RuntimeException("Invalid password");
+        }
+        
+        return convertToDTO(user);
     }
     
     private UserDTO convertToDTO(User user) {

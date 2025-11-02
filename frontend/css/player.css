@@ -1,4 +1,4 @@
-/* Audio Player Styles */
+/* Audio Player Styles - Modern Design */
 
 .audio-player-container {
     position: fixed;
@@ -6,14 +6,29 @@
     left: 0;
     right: 0;
     background: linear-gradient(135deg, #1142AA 0%, #2A4580 50%, #06276F 100%);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5), 0 -1px 0 rgba(255, 255, 255, 0.1) inset;
     z-index: 1000;
-    padding: 15px 30px;
+    padding: 16px 32px;
     display: none;
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
 }
 
 .audio-player-container.active {
     display: block;
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .audio-player {
@@ -25,10 +40,10 @@
 }
 
 .player-artwork {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -36,12 +51,25 @@
     font-size: 24px;
     flex-shrink: 0;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.player-artwork:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 .player-artwork img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.player-artwork:hover img {
+    transform: scale(1.1);
 }
 
 .player-info {
@@ -52,19 +80,35 @@
 .player-track-title {
     color: white;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    letter-spacing: -0.2px;
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.player-track-title:hover {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: underline;
 }
 
 .player-track-artist {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.85);
     font-size: 14px;
+    font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.player-track-artist:hover {
+    color: rgba(255, 255, 255, 1);
+    text-decoration: underline;
 }
 
 .player-controls {
@@ -85,25 +129,53 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 18px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.player-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.player-btn:hover::before {
+    width: 100%;
+    height: 100%;
 }
 
 .player-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.35);
     transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.player-btn:active {
+    transform: scale(0.95);
 }
 
 .player-btn.play-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 22px;
-    background: rgba(255, 255, 255, 0.3);
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+    background: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .player-btn.play-btn:hover {
-    background: rgba(255, 255, 255, 0.4);
-    transform: scale(1.15);
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.12);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 .player-progress-container {
@@ -124,49 +196,62 @@
 
 .player-progress-bar {
     flex: 1;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
     cursor: pointer;
     position: relative;
-    transition: height 0.2s;
+    transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .player-progress-bar:hover {
-    height: 10px;
+    height: 8px;
+}
+
+.player-progress-bar:hover .player-progress-fill {
+    background: rgba(255, 255, 255, 1);
 }
 
 .player-progress-fill {
     height: 100%;
-    background: white;
-    border-radius: 4px;
-    transition: width 0.1s linear;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 3px;
+    transition: width 0.1s linear, background 0.2s ease;
     position: relative;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
 .player-progress-handle {
     position: absolute;
-    right: -10px;
+    right: -12px;
     top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
+    transform: translateY(-50%) scale(0);
+    width: 14px;
+    height: 14px;
     background: white;
     border-radius: 50%;
     opacity: 0;
-    transition: opacity 0.3s, transform 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(17, 66, 170, 0.3);
 }
 
 .player-progress-bar:hover .player-progress-handle,
 .player-progress-bar.dragging .player-progress-handle {
     opacity: 1;
-    transform: translateY(-50%) scale(1.2);
+    transform: translateY(-50%) scale(1);
 }
 
 .player-progress-bar.dragging {
-    height: 10px;
+    height: 8px;
+}
+
+.player-progress-bar.dragging .player-progress-handle {
+    width: 18px;
+    height: 18px;
+    right: -14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .player-volume-container {
@@ -195,19 +280,29 @@
 }
 
 .player-volume-slider {
-    width: 80px;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 2px;
+    width: 100px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 3px;
     cursor: pointer;
     position: relative;
+    transition: height 0.2s ease;
+}
+
+.player-volume-slider:hover {
+    height: 6px;
 }
 
 .player-volume-fill {
     height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 3px;
+    transition: width 0.1s ease, background 0.2s ease;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+}
+
+.player-volume-slider:hover .player-volume-fill {
     background: white;
-    border-radius: 2px;
-    transition: width 0.1s;
 }
 
 .player-actions {
@@ -220,25 +315,56 @@
     background: rgba(255, 255, 255, 0.2);
     border: none;
     color: white;
-    width: 35px;
-    height: 35px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.player-action-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.player-action-btn:hover::before {
+    width: 100%;
+    height: 100%;
 }
 
 .player-action-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(1.12);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.player-action-btn:active {
+    transform: scale(0.95);
 }
 
 .player-action-btn.active {
-    background: rgba(255, 107, 107, 0.8);
+    background: rgba(255, 107, 107, 0.9);
     color: white;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
+.player-action-btn.active:hover {
+    background: rgba(255, 107, 107, 1);
 }
 
 /* Responsive */

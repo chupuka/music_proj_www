@@ -1,19 +1,23 @@
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\repository\TrackRepository.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\dto\ArtistDTO.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\ArtistService.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\controller\AlbumController.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\entity\Album.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\MusicCatalogServiceApplication.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\repository\AlbumRepository.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\dto\AlbumDTO.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\TrackService.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\AudioDurationService.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\repository\ArtistRepository.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\controller\TrackController.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\exception\GlobalExceptionHandler.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\entity\Artist.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\entity\Track.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\dto\TrackDTO.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\AlbumService.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\controller\ArtistController.java
-D:\rabotika\чубака\проекты\music_proj\music-catalog-service\src\main\java\com\music\musiccatalogservice\controller\FileController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\repository\AlbumRepository.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\controller\FileController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\entity\Track.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\dto\ArtistDTO.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\controller\ArtistController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\ArtistService.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\dto\AlbumDTO.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\exception\GlobalExceptionHandler.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\AudioDurationService.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\TrackPlayService.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\entity\Album.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\entity\TrackPlay.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\controller\AlbumController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\repository\ArtistRepository.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\repository\TrackPlayRepository.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\entity\Artist.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\repository\TrackRepository.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\controller\TrackController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\MusicCatalogServiceApplication.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\TrackService.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\AlbumService.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\dto\TrackDTO.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\music-catalog-service\src\main\java\com\music\musiccatalogservice\service\FileDownloadService.java

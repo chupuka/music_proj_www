@@ -1,20 +1,23 @@
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\dto\PlaylistDTO.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\controller\FavoriteTrackController.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\dto\UserUpdateDTO.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\controller\PlaylistController.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\controller\PlaylistTrackController.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\exception\GlobalExceptionHandler.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\service\UserService.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\UserServiceApplication.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\entity\PlaylistTrack.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\controller\UserController.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\entity\FavoriteTrack.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\repository\PlaylistTrackRepository.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\entity\User.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\repository\FavoriteTrackRepository.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\repository\PlaylistRepository.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\dto\UserDTO.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\entity\Playlist.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\repository\UserRepository.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\dto\UserCreateDTO.java
-D:\rabotika\чубака\проекты\music_proj\user-service\src\main\java\com\music\userservice\service\PlaylistService.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\entity\FavoriteArtist.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\entity\Playlist.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\UserServiceApplication.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\dto\UserCreateDTO.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\repository\PlaylistTrackRepository.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\controller\UserController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\repository\PlaylistRepository.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\controller\FavoriteArtistController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\entity\FavoriteTrack.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\entity\User.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\controller\PlaylistController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\repository\FavoriteTrackRepository.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\repository\UserRepository.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\exception\GlobalExceptionHandler.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\repository\FavoriteArtistRepository.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\controller\PlaylistTrackController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\dto\PlaylistDTO.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\controller\FavoriteTrackController.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\dto\UserUpdateDTO.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\entity\PlaylistTrack.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\service\PlaylistService.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\service\UserService.java
+C:\pract\chibuk\PROEKT MUSIC SYTE\music_proj_www\user-service\src\main\java\com\music\userservice\dto\UserDTO.java

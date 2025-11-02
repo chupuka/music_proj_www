@@ -16,6 +16,7 @@ public class TrackDTO {
     private Long playCountWeek;
     private Long playCountMonth;
     private Long playCountAll;
+    private Boolean isNewRelease;
     
     // Getters and Setters
     public Long getId() {
@@ -121,5 +122,12 @@ public class TrackDTO {
     public void setPlayCountAll(Long playCountAll) {
         this.playCountAll = playCountAll;
     }
+    
+    public Boolean getIsNewRelease() {
+        return isNewRelease != null ? isNewRelease : false;
+    }
+    
+    public void setIsNewRelease(Boolean isNewRelease) {
+        this.isNewRelease = isNewRelease != null ? isNewRelease : false;
+    }
 }
-

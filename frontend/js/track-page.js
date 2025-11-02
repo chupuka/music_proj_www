@@ -191,7 +191,28 @@ async function loadTrackDetails(trackId) {
                             <strong>Битрейт:</strong> 320 kbps
                         </div>
                         <div class="track-meta-item">
-                            <strong>Правообладатель:</strong> ishak.da
+                            <strong>Правообладатель:</strong> Aurora
+                        </div>
+                        <div class="track-meta-item" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                            <strong style="display: block; margin-bottom: 8px;">Статистика прослушиваний:</strong>
+                            <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-headphones" style="color: #1142AA;"></i>
+                                    <span><strong>Всего:</strong> ${track.playCountAll || 0}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-calendar-month" style="color: #1142AA;"></i>
+                                    <span><strong>За месяц:</strong> ${track.playCountMonth || 0}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-calendar-week" style="color: #1142AA;"></i>
+                                    <span><strong>За неделю:</strong> ${track.playCountWeek || 0}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-calendar-day" style="color: #1142AA;"></i>
+                                    <span><strong>За день:</strong> ${track.playCountDay || 0}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="track-details-actions">

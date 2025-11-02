@@ -1,6 +1,12 @@
 spring:
   cloud:
     gateway:
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 20s
+        pool:
+          max-connections: 200
+          max-idle-time: 30s
       globalcors:
         cors-configurations:
           '[/**]':
@@ -26,7 +32,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: userServiceCircuitBreaker
+                name: default
                 fallbackUri: forward:/fallback/user-service
                 
         - id: playlist-service
@@ -36,7 +42,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: playlistServiceCircuitBreaker
+                name: default
                 fallbackUri: forward:/fallback/playlist-service
                 
         - id: artist-service
@@ -46,7 +52,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: artistServiceCircuitBreaker
+                name: default
                 fallbackUri: forward:/fallback/artist-service
                 
         - id: album-service
@@ -56,7 +62,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: albumServiceCircuitBreaker
+                name: default
                 fallbackUri: forward:/fallback/album-service
                 
         - id: track-service
@@ -64,9 +70,19 @@ spring:
           predicates:
             - Path=/api/tracks/**
           filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY,GATEWAY_TIMEOUT
+                methods: GET,POST
+                backoff:
+                  firstBackoff: 50ms
+                  maxBackoff: 500ms
+                  factor: 2
+                  basedOnPreviousValue: false
             - name: CircuitBreaker
               args:
-                name: trackServiceCircuitBreaker
+                name: track-service
                 fallbackUri: forward:/fallback/track-service
                 
         - id: notification-service
@@ -76,7 +92,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: notificationServiceCircuitBreaker
+                name: default
                 fallbackUri: forward:/fallback/notification-service
                 
         - id: favorite-tracks-service
@@ -86,8 +102,18 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: favoriteTracksCircuitBreaker
+                name: default
                 fallbackUri: forward:/fallback/favorite-tracks
+                
+        - id: favorite-artists-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/favorite-artists/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/favorite-artists
                 
         - id: playlist-tracks-service
           uri: lb://user-service
@@ -96,7 +122,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: playlistTracksCircuitBreaker
+                name: default
                 fallbackUri: forward:/fallback/playlist-service
                 
         - id: files-service
@@ -106,6 +132,81 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: filesServiceCircuitBreaker
+                name: default
                 fallbackUri: forward:/fallback/files-service
+                
+        - id: analytics-service
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/analytics/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: analytics
+                fallbackUri: forward:/fallback/analytics-service
+                
+        - id: recommendation-service
+          uri: lb://recommendation-service
+          predicates:
+            - Path=/api/recommendations/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/recommendation-service
+                
+        - id: search-service
+          uri: lb://search-service
+          predicates:
+            - Path=/api/search/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/search-service
+                
+        - id: social-service
+          uri: lb://social-service
+          predicates:
+            - Path=/api/social/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/social-service
 
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 90
+        wait-duration-in-open-state: 5s
+        sliding-window-size: 10
+        minimum-number-of-calls: 10
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        record-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.cloud.gateway.support.TimeoutException
+        ignore-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+      analytics:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
+        permitted-number-of-calls-in-half-open-state: 2
+        automatic-transition-from-open-to-half-open-enabled: true
+      track-service:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
+        permitted-number-of-calls-in-half-open-state: 2
+        automatic-transition-from-open-to-half-open-enabled: true
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 10s

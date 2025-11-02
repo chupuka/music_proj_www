@@ -50,5 +50,78 @@ public class TrackPlayService {
         
         return counts;
     }
-}
 
+    public void setPlayCounts(Long trackId, Long playCountAll, Long playCountMonth, Long playCountWeek, Long playCountDay) {
+        // Валидация входных данных
+        if (trackId == null) {
+            throw new IllegalArgumentException("Track ID cannot be null");
+        }
+        
+        // Обработка null значений
+        if (playCountAll == null) playCountAll = 0L;
+        if (playCountMonth == null) playCountMonth = 0L;
+        if (playCountWeek == null) playCountWeek = 0L;
+        if (playCountDay == null) playCountDay = 0L;
+        
+        // Убедимся, что значения не отрицательные
+        playCountAll = Math.max(0, playCountAll);
+        playCountMonth = Math.max(0, playCountMonth);
+        playCountWeek = Math.max(0, playCountWeek);
+        playCountDay = Math.max(0, playCountDay);
+        
+        // Убедимся, что общее количество >= других значений
+        playCountAll = Math.max(playCountAll, Math.max(playCountMonth, Math.max(playCountWeek, playCountDay)));
+        
+        // Удаляем все существующие записи для этого трека
+        trackPlayRepository.deleteByTrackId(trackId);
+        
+        // Если все значения 0, просто выходим
+        if (playCountAll == 0) {
+            return;
+        }
+        
+        LocalDateTime now = LocalDateTime.now();
+        java.util.List<TrackPlay> trackPlays = new java.util.ArrayList<>();
+        
+        // Определяем границы для разных периодов
+        long oldCount = playCountAll - playCountMonth; // Записи старше месяца
+        long monthCount = playCountMonth - playCountWeek; // Записи за месяц, но старше недели
+        long weekCount = playCountWeek - playCountDay; // Записи за неделю, но старше дня
+        long dayCount = playCountDay; // Записи за день
+        
+        // Создаем записи для периода старше месяца
+        for (long i = 0; i < oldCount; i++) {
+            TrackPlay trackPlay = new TrackPlay();
+            trackPlay.setTrackId(trackId);
+            trackPlay.setPlayedAt(now.minusMonths(2).minusDays(i));
+            trackPlays.add(trackPlay);
+        }
+        
+        // Создаем записи за месяц (но старше недели)
+        for (long i = 0; i < monthCount; i++) {
+            TrackPlay trackPlay = new TrackPlay();
+            trackPlay.setTrackId(trackId);
+            trackPlay.setPlayedAt(now.minusWeeks(2).minusDays(i));
+            trackPlays.add(trackPlay);
+        }
+        
+        // Создаем записи за неделю (но старше дня)
+        for (long i = 0; i < weekCount; i++) {
+            TrackPlay trackPlay = new TrackPlay();
+            trackPlay.setTrackId(trackId);
+            trackPlay.setPlayedAt(now.minusDays(2).minusHours((int)i));
+            trackPlays.add(trackPlay);
+        }
+        
+        // Создаем записи за день
+        for (long i = 0; i < dayCount; i++) {
+            TrackPlay trackPlay = new TrackPlay();
+            trackPlay.setTrackId(trackId);
+            trackPlay.setPlayedAt(now.minusHours(1).minusMinutes((int)i));
+            trackPlays.add(trackPlay);
+        }
+        
+        // Batch save для оптимизации
+        trackPlayRepository.saveAll(trackPlays);
+    }
+}

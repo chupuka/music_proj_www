@@ -66,5 +66,34 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+    
+    @PostMapping("/login")
+    @Operation(summary = "Login user")
+    public ResponseEntity<UserDTO> login(@RequestBody LoginRequest loginRequest) {
+        UserDTO user = userService.login(loginRequest.getEmailOrUsername(), loginRequest.getPassword());
+        return ResponseEntity.ok(user);
+    }
+    
+    // Inner class for login request
+    public static class LoginRequest {
+        private String emailOrUsername;
+        private String password;
+        
+        public String getEmailOrUsername() {
+            return emailOrUsername;
+        }
+        
+        public void setEmailOrUsername(String emailOrUsername) {
+            this.emailOrUsername = emailOrUsername;
+        }
+        
+        public String getPassword() {
+            return password;
+        }
+        
+        public void setPassword(String password) {
+            this.password = password;
+        }
+    }
 }
 

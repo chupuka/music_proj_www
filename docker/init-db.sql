@@ -1,21 +1,10 @@
--- Автоматическая настройка прав пользователя при первом запуске PostgreSQL в Docker
--- Этот скрипт выполняется автоматически при создании контейнера
--- Важно: скрипт выполняется от имени суперпользователя postgres
+-- Automatic user rights configuration on first PostgreSQL startup in Docker
+-- This script runs automatically when the container is created
+-- Important: script runs as superuser (POSTGRES_USER from environment variables)
 
--- Выдаем все необходимые права пользователю username на базе данных
+-- Ensure the password is set for user username
+-- This guarantees the password is set correctly even if environment variables don't work
+ALTER USER username WITH PASSWORD 'durak123' LOGIN SUPERUSER CREATEDB CREATEROLE;
+
+-- Grant all necessary privileges to user username on the database
 GRANT ALL PRIVILEGES ON DATABASE music_prilo_db TO username;
-
--- Подключаемся к базе данных music_prilo_db
-\c music_prilo_db
-
--- Выдаем права на схему public
-GRANT ALL PRIVILEGES ON SCHEMA public TO username;
-
--- Настраиваем права по умолчанию для будущих таблиц и последовательностей
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO username;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO username;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO username;
-
--- Делаем пользователя владельцем схемы public (опционально, но рекомендуется)
-ALTER SCHEMA public OWNER TO username;
-
